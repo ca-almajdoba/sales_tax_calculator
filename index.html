@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Tax Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f4f8; 
+            color: #2c3e50; 
+            margin: 20px;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* Header Styling */
+        .header {
+            text-align: left;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #0070C0;
+            padding-bottom: 10px;
+            
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: space-between; 
+            align-items: flex-start;
+        }
+
+        .header h2 {
+            flex-basis: 100%; 
+            display: block;
+            color: #0070C0; 
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+        }
+        
+        .dev-info-container {
+            flex-basis: 100%;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            margin: 0; 
+            font-size: 12px;
+            color: #6c7a89;
+            font-weight: 600;
+        }
+
+        .header a {
+            padding: 4px 8px;
+            font-size: 12px;
+            background-color: #0070C0;
+            color: #fff;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+            margin-left: 10px;
+        }
+
+        .header a:hover {
+            background-color: #005a8c;
+        }
+        
+        /* Styles for Details Sections */
+        .details-container {
+            display: flex;
+            flex-basis: 100%; 
+            justify-content: flex-start;
+            gap: 50px; 
+        }
+        
+        .company-details, .declaration-details {
+            min-width: 300px; 
+            margin-top: 5px;
+        }
+        
+        /* General Input Group (Flex for label and input) */
+        .header .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        /* Labels in BOTH columns */
+        .header .input-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 150px; /* Fixed width to align inputs horizontally */
+            text-align: left;
+            padding-right: 5px; 
+        }
+
+        /* Inputs in BOTH columns */
+        .header .input-group input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            text-align: left;
+            flex-grow: 1;
+            max-width: 180px; /* Fixed width to align inputs vertically with each other */
+        }
+        
+        /* Tweak for declaration-details labels (right column) to ensure alignment with the left column inputs */
+        .declaration-details .input-group label {
+            min-width: 150px; /* Ensures space for the longer labels like Tax Period Start (From) */
+        }
+        
+        /* Opening Balance Row (No change) */
+        .balance-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 15px;
+            padding: 10px;
+            background-color: #e6f0fa;
+            border-radius: 8px;
+            border-left: 5px solid #0070C0;
+        }
+
+        .balance-row label {
+            font-weight: 700;
+            color: #0070C0;
+        }
+
+        .balance-row input {
+            width: 150px;
+            padding: 8px;
+            font-weight: 600;
+            text-align: left;
+            border: 1px solid #0070C0;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Section Title (No change) */
+        .section-title {
+            font-weight: 700;
+            font-size: 18px;
+            color: #0070C0;
+            margin: 20px 0 15px 0;
+            text-transform: uppercase;
+        }
+
+        /* Input Columns (No change) */
+        .columns {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 250px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+
+        .column h3 {
+            margin-top: 0;
+            font-size: 16px;
+            color: #0070C0;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+
+        .column .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .column .input-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .column .input-group input {
+            width: 65%;
+            padding: 8px;
+            font-size: 14px;
+            text-align: right;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Buttons (No change) */
+        button {
+            padding: 12px 25px;
+            margin-top: 25px;
+            cursor: pointer;
+            background-color: #0070C0;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.3s;
+            margin-right: 15px;
+            box-shadow: 0 4px 8px rgba(0, 112, 192, 0.3);
+        }
+
+        button:hover {
+            background-color: #005a8c;
+            transform: translateY(-1px);
+        }
+
+        /* Report Cards (No change) */
+        .report {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .report-card {
+            flex: 1;
+            min-width: 250px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+
+        .report-card h4 {
+            margin: 0 0 10px 0;
+            font-weight: 700;
+            text-align: center;
+            color: #0070C0;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 5px;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .report-table td, .report-table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .report-table th {
+            background-color: #e6f0fa;
+            color: #0070C0;
+            font-weight: 600;
+        }
+
+        /* Result Cards (No change) */
+        .results {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #ccc;
+            flex-wrap: wrap;
+        }
+
+        .result-card {
+            flex: 1;
+            min-width: 150px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-weight: 600;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .result-card span {
+            display: block;
+            font-size: 18px;
+            color: #0070C0;
+            margin-top: 8px;
+            font-weight: 700;
+        }
+
+        .final-balance {
+            background-color: #fff0f0; 
+            border: 2px solid #8B0000;
+        }
+
+        .final-balance span {
+            color: #8B0000; 
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>PROFESSIONAL TAX CALCULATOR</h2>
+        
+        <div class="dev-info-container">
+            <p>DEVELOPED BY: AHMAD MAJDOBA</p>
+            <a href="https://www.majdoba.me" target="_blank">Visit Site</a>
+        </div>
+        
+        <div class="details-container">
+            <div class="company-details">
+                <div class="input-group">
+                    <label for="companyName">Company Name:</label>
+                    <input type="text" id="companyName" placeholder="Enter company name">
+                </div>
+                <div class="input-group">
+                    <label for="taxID">Tax ID / VAT:</label>
+                    <input type="text" id="taxID" placeholder="Enter tax registration number">
+                </div>
+                <div class="input-group">
+                    <label for="declarationDate">Declaration Date:</label>
+                    <input type="date" id="declarationDate">
+                </div>
+            </div>
+
+            <div class="declaration-details">
+                <div class="input-group">
+                    <label for="taxPeriodStart">Tax Period Start (From):</label>
+                    <input type="date" id="taxPeriodStart">
+                </div>
+                <div class="input-group">
+                    <label for="taxPeriodEnd">Tax Period End (To):</label>
+                    <input type="date" id="taxPeriodEnd">
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <div class="balance-row">
+        <label for="openingBalance">Opening Balance:</label>
+        <input type="number" id="openingBalance" value="0">
+    </div>
+
+    <div class="section-title">TAX RETURN CALCULATOR</div>
+
+    <div class="columns">
+        <div class="column">
+            <h3>Sales</h3>
+            <div class="input-group">
+                <label for="sales16">16%</label>
+                <input type="number" id="sales16" value="0">
+            </div>
+            <div class="input-group">
+                <label for="sales10">10%</label>
+                <input type="number" id="sales10" value="0">
+            </div>
+            <div class="input-group">
+                <label for="sales4">4%</label>
+                <input type="number" id="sales4" value="0">
+            </div>
+        </div>
+
+        <div class="column">
+            <h3>Purchases</h3>
+            <div class="input-group">
+                <label for="purchases16">16%</label>
+                <input type="number" id="purchases16" value="0">
+            </div>
+            <div class="input-group">
+                <label for="purchases10">10%</label>
+                <input type="number" id="purchases10" value="0">
+            </div>
+            <div class="input-group">
+                <label for="purchases4">4%</label>
+                <input type="number" id="purchases4" value="0">
+            </div>
+        </div>
+
+        <div class="column">
+            <h3>Imports</h3>
+            <div class="input-group">
+                <label for="imports16">16%</label>
+                <input type="number" id="imports16" value="0">
+            </div>
+            <div class="input-group">
+                <label for="imports10">10%</label>
+                <input type="number" id="imports10" value="0">
+            </div>
+            <div class="input-group">
+                <label for="imports4">4%</label>
+                <input type="number" id="imports4" value="0">
+            </div>
+        </div>
+    </div>
+
+    <button onclick="calculateTax()">Calculate</button>
+    <button onclick="exportPDF()">Export PDF</button>
+
+    <div class="report">
+        <div class="report-card" id="reportSales"><h4>Sales Report</h4></div>
+        <div class="report-card" id="reportPurchases"><h4>Purchases Report</h4></div>
+        <div class="report-card" id="reportImports"><h4>Imports Report</h4></div>
+    </div>
+
+    <div class="results">
+        <div class="result-card">Sales Tax <span id="totalSales">0.00</span></div>
+        <div class="result-card">Purchases Tax <span id="totalPurchases">0.00</span></div>
+        <div class="result-card">Imports Tax <span id="totalImports">0.00</span></div>
+        <div class="result-card final-balance">Final Balance <span id="finalBalance">0.00</span></div>
+    </div>
+
+    <script>
+        let salesData = [];
+        let purchasesData = [];
+        let importsData = [];
+
+        // Helper function to format numbers with 2 decimal places
+        function format(value) {
+            return parseFloat(value).toFixed(2);
+        }
+
+        /**
+         * Calculates tax and updates HTML results.
+         */
+        function calculateTax() {
+            // 1. Gather Data
+            const opening = parseFloat(document.getElementById('openingBalance').value) || 0;
+
+            // --- Sales ---
+            const s16 = parseFloat(document.getElementById('sales16').value) || 0;
+            const s10 = parseFloat(document.getElementById('sales10').value) || 0;
+            const s4  = parseFloat(document.getElementById('sales4').value) || 0;
+
+            const salesTax = (s16 * 0.16) + (s10 * 0.10) + (s4 * 0.04);
+            
+            salesData = [
+                ['16%', s16, (s16 * 0.16)],
+                ['10%', s10, (s10 * 0.10)],
+                ['4%', s4, (s4 * 0.04)]
+            ];
+
+            // --- Purchases ---
+            const p16 = parseFloat(document.getElementById('purchases16').value) || 0;
+            const p10 = parseFloat(document.getElementById('purchases10').value) || 0;
+            const p4  = parseFloat(document.getElementById('purchases4').value) || 0;
+
+            const purchasesTax = (p16 * 0.16) + (p10 * 0.10) + (p4 * 0.04);
+            
+            purchasesData = [
+                ['16%', p16, (p16 * 0.16)],
+                ['10%', p10, (p10 * 0.10)],
+                ['4%', p4, (p4 * 0.04)]
+            ];
+
+            // --- Imports ---
+            const i16 = parseFloat(document.getElementById('imports16').value) || 0;
+            const i10 = parseFloat(document.getElementById('imports10').value) || 0;
+            const i4  = parseFloat(document.getElementById('imports4').value) || 0;
+
+            const importsTax = (i16 * 0.16) + (i10 * 0.10) + (i4 * 0.04);
+            
+            importsData = [
+                ['16%', i16, (i16 * 0.16)],
+                ['10%', i10, (i10 * 0.10)],
+                ['4%', i4, (i4 * 0.04)]
+            ];
+
+            // 2. Calculate Final Balance
+            const finalBalance = opening + purchasesTax + importsTax - salesTax;
+
+            // 3. Update Totals in HTML
+            document.getElementById('totalSales').innerText = format(salesTax);
+            document.getElementById('totalPurchases').innerText = format(purchasesTax);
+            document.getElementById('totalImports').innerText = format(importsTax);
+            document.getElementById('finalBalance').innerText = format(finalBalance);
+
+            // 4. Update Detailed Report Tables
+            updateReportCard('reportSales', 'Sales Report', salesData);
+            updateReportCard('reportPurchases', 'Purchases Report', purchasesData);
+            updateReportCard('reportImports', 'Imports Report', importsData);
+        }
+
+        /**
+         * Helper function to update the report card HTML structure.
+         */
+        function updateReportCard(elementId, title, data) {
+            const tableRows = data.map(row => 
+                `<tr><td>${row[0]}</td><td>${format(row[1])}</td><td>${format(row[2])}</td></tr>`
+            ).join('');
+
+            document.getElementById(elementId).innerHTML = `
+                <h4>${title}</h4>
+                <table class="report-table">
+                    <tr><th>Rate</th><th>Amount</th><th>Tax</th></tr>
+                    ${tableRows}
+                </table>
+            `;
+        }
+
+        /**
+         * Exports the report to a PDF file using jsPDF and autoTable.
+         */
+        function exportPDF() {
+            // Check if jsPDF library is loaded
+            if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+                alert("PDF library is not loaded. Please ensure you are connected to the internet.");
+                return;
+            }
+
+            // Recalculate to ensure variables are up-to-date
+            calculateTax(); 
+
+            // --- Read New Header Data ---
+            const companyName = document.getElementById('companyName').value.trim() || 'N/A';
+            const taxID = document.getElementById('taxID').value.trim() || 'N/A';
+            const declarationDate = document.getElementById('declarationDate').value.trim() || 'N/A';
+            const taxPeriodStart = document.getElementById('taxPeriodStart').value.trim() || 'N/A';
+            const taxPeriodEnd = document.getElementById('taxPeriodEnd').value.trim() || 'N/A';
+
+
+            // IMPORTANT: Access jsPDF directly from the window object
+            const doc = new window.jspdf.jsPDF();
+            let finalY = 0; 
+            
+            // --- Formatting Setup ---
+            const BLUE = [0, 112, 192];
+            const RED = [139, 0, 0];
+            const GREY = [44, 62, 80];
+
+            // 1. Header and Basic Data
+            doc.setFontSize(20);
+            doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+            doc.text("Professional Tax Report", 14, 20);
+
+            // Add Company and Tax ID
+            doc.setFontSize(10);
+            doc.setTextColor(GREY[0], GREY[1], GREY[2]);
+            doc.text(`Company: ${companyName}`, 14, 28);
+            doc.text(`Tax ID: ${taxID}`, 14, 34);
+
+            // Add Period and Date
+            doc.setFontSize(10);
+            doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+            doc.text(`Declaration Date: ${declarationDate}`, 120, 28); 
+            doc.text(`Tax Period: ${taxPeriodStart} to ${taxPeriodEnd}`, 120, 34); 
+            
+            doc.setLineWidth(0.5);
+            doc.setDrawColor(BLUE[0], BLUE[1], BLUE[2]);
+            doc.line(14, 38, 196, 38);
+
+            const opening = parseFloat(document.getElementById('openingBalance').value) || 0;
+            doc.setTextColor(GREY[0], GREY[1], GREY[2]);
+            doc.setFontSize(12);
+            doc.text(`Opening Balance: ${format(opening)}`, 14, 45);
+            
+            finalY = 51; // Start position for the first table
+
+            // Helper function to create table data for PDF (ensuring formatted numbers)
+            const mapDataForPDF = (data) => data.map(([rate, amount, tax]) => [rate, format(amount), format(tax)]);
+
+            // --- 2. Sales Table ---
+            doc.setFontSize(14);
+            doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+            doc.text("Sales Details", 14, finalY);
+            doc.autoTable({
+                startY: finalY + 2,
+                head: [['Rate', 'Amount', 'Tax']],
+                body: mapDataForPDF(salesData),
+                theme: 'striped',
+                headStyles: { fillColor: BLUE, textColor: 255 },
+                columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
+            });
+            finalY = doc.lastAutoTable.finalY;
+
+            // --- 3. Purchases Table ---
+            doc.setFontSize(14);
+            doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+            doc.text("Purchases Details", 14, finalY + 10);
+            doc.autoTable({
+                startY: finalY + 12,
+                head: [['Rate', 'Amount', 'Tax']],
+                body: mapDataForPDF(purchasesData),
+                theme: 'striped',
+                headStyles: { fillColor: BLUE, textColor: 255 },
+                columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
+            });
+            finalY = doc.lastAutoTable.finalY;
+
+            // --- 4. Imports Table ---
+            doc.setFontSize(14);
+            doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+            doc.text("Imports Details", 14, finalY + 10);
+            doc.autoTable({
+                startY: finalY + 12,
+                head: [['Rate', 'Amount', 'Tax']],
+                body: mapDataForPDF(importsData),
+                theme: 'striped',
+                headStyles: { fillColor: BLUE, textColor: 255 },
+                columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
+            });
+            finalY = doc.lastAutoTable.finalY;
+
+            // --- 5. Final Totals Summary ---
+            const totalSales = parseFloat(document.getElementById('totalSales').innerText);
+            const totalPurchases = parseFloat(document.getElementById('totalPurchases').innerText);
+            const totalImports = parseFloat(document.getElementById('totalImports').innerText);
+            const finalBalance = parseFloat(document.getElementById('finalBalance').innerText);
+            
+            doc.setLineWidth(0.5);
+            doc.setDrawColor(BLUE[0], BLUE[1], BLUE[2]);
+            doc.line(14, finalY + 10, 196, finalY + 10);
+
+            doc.setFontSize(14);
+            doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+            doc.text(`Total Sales Tax: ${format(totalSales)}`, 14, finalY + 18);
+            doc.text(`Total Purchases Tax: ${format(totalPurchases)}`, 14, finalY + 26);
+            doc.text(`Total Imports Tax: ${format(totalImports)}`, 14, finalY + 34);
+            
+            doc.setLineWidth(1);
+            doc.setDrawColor(RED[0], RED[1], RED[2]);
+            doc.line(14, finalY + 38, 196, finalY + 38);
+            
+            doc.setTextColor(RED[0], RED[1], RED[2]); 
+            doc.setFontSize(18);
+            doc.text(`FINAL BALANCE: ${format(finalBalance)}`, 14, finalY + 46);
+
+            doc.save('Professional_Tax_Report.pdf');
+        }
+        
+        // Set default date to today when the page loads
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const dateInput = document.getElementById('declarationDate');
+            if (dateInput) {
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0];
+                dateInput.value = formattedDate;
+            }
+        });
+
+        // Run calculation on page load
+        window.onload = calculateTax;
+    </script>
+
+</body>
+</html>
