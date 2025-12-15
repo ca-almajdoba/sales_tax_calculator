@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Tax Calculator</title>
+
+    <!-- ✅ Cache control (helps clients always get latest version) -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -38,7 +44,30 @@
             margin: 0 0 5px 0;
             text-transform: uppercase;
         }
-        
+
+        /* ✅ ADDITION: title row + datetime (does not affect your layout except placing datetime on right) */
+        .header-title-row {
+            flex-basis: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        /* override only inside the title row so datetime can sit on the right */
+        .header-title-row h2 {
+            flex-basis: auto;
+            flex: 1;
+            margin: 0 0 5px 0;
+        }
+        .header-datetime {
+            font-size: 12px;
+            color: #6c7a89;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+        /* ✅ END ADDITION */
+
         .dev-info-container {
             flex-basis: 100%;
             display: flex;
@@ -314,7 +343,12 @@
 <body>
 
     <div class="header">
-        <h2>PROFESSIONAL TAX CALCULATOR</h2>
+
+        <!-- ✅ ONLY HTML CHANGE: wrap title + add datetime on right -->
+        <div class="header-title-row">
+            <h2>PROFESSIONAL TAX CALCULATOR</h2>
+            <span class="header-datetime" id="appDateTime"></span>
+        </div>
         
         <div class="dev-info-container">
             <p>DEVELOPED BY: AHMAD MAJDOBA</p>
@@ -531,7 +565,6 @@
             const taxPeriodStart = document.getElementById('taxPeriodStart').value.trim() || 'N/A';
             const taxPeriodEnd = document.getElementById('taxPeriodEnd').value.trim() || 'N/A';
 
-
             // IMPORTANT: Access jsPDF directly from the window object
             const doc = new window.jspdf.jsPDF();
             let finalY = 0; 
@@ -648,6 +681,14 @@
                 const today = new Date();
                 const formattedDate = today.toISOString().split('T')[0];
                 dateInput.value = formattedDate;
+            }
+
+            // ✅ ADDITION: datetime on header (independent from your logic)
+            const dt = document.getElementById('appDateTime');
+            if (dt) {
+                const tick = () => dt.textContent = new Date().toLocaleString('en-GB');
+                tick();
+                setInterval(tick, 1000);
             }
         });
 
